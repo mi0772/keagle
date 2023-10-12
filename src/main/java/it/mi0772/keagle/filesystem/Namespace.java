@@ -14,14 +14,18 @@ public class Namespace {
     private final String databasePath;
     private final Path namespacePath;
 
-    public Namespace() throws IOException {
+    public Namespace() {
 
         Dotenv dotenv = Dotenv.load();
         this.databasePath = dotenv.get("STORAGE_PATH");
         this.namespacePath = Path.of(databasePath, "namespaces");
 
         if (!this.namespacePath.toFile().exists()) {
-            Files.createDirectories(this.namespacePath);
+            try {
+                Files.createDirectories(this.namespacePath);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -53,12 +57,16 @@ public class Namespace {
         return nameHash;
     }
 
-    public String get(String name) throws NamespaceNotFoundException, IOException {
+    public String get(String name) throws NamespaceNotFoundException {
         var nameHash = MD5Hasher.toHex(name);
         var p = this.namespacePath.resolve(nameHash);
         if (!p.toFile().exists())
             throw new NamespaceNotFoundException("namespace with name : "+name+" does not exists");
 
-        return Files.readString(p);
+        try {
+            return Files.readString(p);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -22,7 +22,7 @@ public class FileSystemStorageReceiver implements StorageReceiver {
     }
 
     @Override
-    public Optional<KRecord> get(String namespace, String key) throws IOException {
+    public Optional<KRecord> get(String namespace, String key)  {
         var resource = new Resource(namespace, MD5Hasher.toHex(key));
         if (!resource.exist() || resource.isExpired()) {
             return Optional.empty();

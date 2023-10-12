@@ -2,6 +2,7 @@ package it.mi0772.keagle.command;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import it.mi0772.keagle.exceptions.KRecordAlreadyExists;
+import it.mi0772.keagle.exceptions.NamespaceNotFoundException;
 import it.mi0772.keagle.receiver.FileSystemStorageReceiver;
 import it.mi0772.keagle.receiver.StorageReceiver;
 import it.mi0772.keagle.record.KRecord;
@@ -33,7 +34,7 @@ class CommandInvokerTest {
     private static final Logger logger = LoggerFactory.getLogger(CommandInvokerTest.class);
 
     @Test
-    void test() throws KRecordAlreadyExists, IOException {
+    void test() throws KRecordAlreadyExists, IOException, NamespaceNotFoundException {
         StorageReceiver receiver = new FileSystemStorageReceiver();
 
         Command putCommand = new PutCommand(receiver,"ns_prova", "ciao", "valore".getBytes(StandardCharsets.UTF_8));
@@ -77,6 +78,29 @@ class CommandInvokerTest {
             Command get = new GetCommand(receiver, "ns_prova","expire_test");
             var result = invoker.executeCommand(get);
         });
+    }
+
+    @Test
+    void massiveTest() throws KRecordAlreadyExists, IOException, NamespaceNotFoundException {
+        StorageReceiver receiver = new FileSystemStorageReceiver();
+        CommandInvoker invoker = new CommandInvoker();
+
+        assertDoesNotThrow(() -> {
+            for (int i=0 ; i < 10_000 ; i++) {
+                Command putCommand = new PutCommand(receiver, "test_namespace", "elemento"+i, new String("valore"+i).getBytes(StandardCharsets.UTF_8));
+                invoker.executeCommand(putCommand);
+            }
+        });
+
+        assertDoesNotThrow(() -> {
+            for (int i=0 ; i < 10_000 ; i++) {
+                Command getCommand = new GetCommand(receiver, "test_namespace", "elemento"+i);
+                var record = invoker.executeCommand(getCommand);
+                assertNotNull(record);
+            }
+        });
+
+
     }
 
     @BeforeEach

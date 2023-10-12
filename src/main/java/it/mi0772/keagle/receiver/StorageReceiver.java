@@ -9,5 +9,5 @@ import java.util.Optional;
 
 public interface StorageReceiver {
     KRecord put(String namespace, String key, byte[] value, Duration duration) throws KRecordAlreadyExists, IOException;
-    Optional<KRecord> get(String namespace, String key) throws IOException;
+    Optional<KRecord> get(String namespace, String key);
 }

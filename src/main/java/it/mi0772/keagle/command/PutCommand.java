@@ -1,6 +1,7 @@
 package it.mi0772.keagle.command;
 
 import it.mi0772.keagle.exceptions.KRecordAlreadyExists;
+import it.mi0772.keagle.filesystem.Namespace;
 import it.mi0772.keagle.receiver.StorageReceiver;
 import it.mi0772.keagle.record.KRecord;
 import org.slf4j.Logger;
@@ -34,7 +35,7 @@ public class PutCommand implements Command {
 
     @Override
     public Optional<KRecord> execute() throws KRecordAlreadyExists, IOException {
-        logger.info("put command received, values {}, {}", this.key, this.value);
+        new Namespace().getOrCreate(namespace);
         return Optional.ofNullable(receiver.put(this.namespace, this.key, this.value, this.duration));
     }
 }

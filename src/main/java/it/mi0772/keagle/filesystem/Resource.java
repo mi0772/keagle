@@ -1,6 +1,7 @@
 package it.mi0772.keagle.filesystem;
 
-import io.github.cdimascio.dotenv.Dotenv;
+import it.mi0772.keagle.config.KConfig;
+import it.mi0772.keagle.hash.MD5Hasher;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -25,15 +26,12 @@ public class Resource {
     private final String databasePath;
     private final String namespace;
 
-    public Resource(String namespace, String hash) throws IOException {
-        Dotenv dotenv = Dotenv.load();
-        var ns = new Namespace();
-        this.namespace = ns.getOrCreate(namespace);
+    public Resource(String namespace, String hash) {
+        this.namespace = MD5Hasher.toHex(namespace);
         this.hash = hash;
         this.entryPath = this.hash;
-        this.databasePath = dotenv.get("STORAGE_PATH");
+        this.databasePath = KConfig.getInstance().getProperty("STORAGE_PATH");
         this.resourcePath = Paths.get(this.databasePath, "records", this.namespace, this.entryPath);
-
     }
 
     public boolean exist() {
@@ -59,25 +57,37 @@ public class Resource {
         return true;
     }
 
-    public byte[] read() throws IOException {
-        if (isExpired()) {
-            removeExpiredEntry();
-            return null;
+    public byte[] read() {
+        try {
+            if (isExpired()) {
+                removeExpiredEntry();
+                return null;
+            }
+            return Files.readAllBytes(resourcePath.resolve("CONTENT"));
         }
-        return Files.readAllBytes(resourcePath.resolve("CONTENT"));
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
-    public boolean isExpired() throws IOException {
+    public boolean isExpired()  {
         var expirePath = resourcePath.resolve("EXPIRE");
-        if (expirePath.toFile().exists()) {
-            var t = Files.readAllBytes(expirePath);
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("ddMMyyyy-HH:mm:ss");
-            var expireTime = LocalDateTime.parse(new String(t), formatter);
-            if (expireTime.isBefore(LocalDateTime.now())) {
-                removeExpiredEntry();
-                return true;
+        try {
+            if (expirePath.toFile().exists()) {
+                var t = Files.readAllBytes(expirePath);
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("ddMMyyyy-HH:mm:ss");
+                var expireTime = LocalDateTime.parse(new String(t), formatter);
+                if (expireTime.isBefore(LocalDateTime.now())) {
+                    removeExpiredEntry();
+                    return true;
+                }
             }
         }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         return false;
     }
 

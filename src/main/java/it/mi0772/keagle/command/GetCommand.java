@@ -1,5 +1,7 @@
 package it.mi0772.keagle.command;
 
+import it.mi0772.keagle.exceptions.NamespaceNotFoundException;
+import it.mi0772.keagle.filesystem.Namespace;
 import it.mi0772.keagle.receiver.StorageReceiver;
 import it.mi0772.keagle.record.KRecord;
 import org.slf4j.Logger;
@@ -22,8 +24,9 @@ public class GetCommand implements Command {
     }
 
     @Override
-    public Optional<KRecord> execute() throws IOException {
-        logger.info("get command received, looking for key : {}", this.key);
+    public Optional<KRecord> execute() throws NamespaceNotFoundException {
+        new Namespace().get(this.namespace);
         return receiver.get(this.namespace, this.key);
+
     }
 }
