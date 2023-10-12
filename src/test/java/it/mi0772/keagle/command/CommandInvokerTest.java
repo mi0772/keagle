@@ -36,13 +36,13 @@ class CommandInvokerTest {
     void test() throws KRecordAlreadyExists, IOException {
         StorageReceiver receiver = new FileSystemStorageReceiver();
 
-        Command putCommand = new PutCommand(receiver, "ciao", "valore".getBytes(StandardCharsets.UTF_8));
+        Command putCommand = new PutCommand(receiver,"ns_prova", "ciao", "valore".getBytes(StandardCharsets.UTF_8));
         CommandInvoker invoker = new CommandInvoker();
 
         var result = invoker.executeCommand(putCommand);
         logger.info("put result : {}", result);
 
-        Command getCommand = new GetCommand(receiver, "ciao");
+        Command getCommand = new GetCommand(receiver, "ns_prova","ciao");
         var value = invoker.executeCommand(getCommand);
         logger.info("get result : {}", value);
         assertTrue(true);
@@ -52,7 +52,7 @@ class CommandInvokerTest {
     void alreadyExist() throws KRecordAlreadyExists, IOException {
         StorageReceiver receiver = new FileSystemStorageReceiver();
 
-        Command putCommand = new PutCommand(receiver, "ciao", "valore".getBytes(StandardCharsets.UTF_8));
+        Command putCommand = new PutCommand(receiver, "ns_prova", "ciao", "valore".getBytes(StandardCharsets.UTF_8));
         CommandInvoker invoker = new CommandInvoker();
         assertDoesNotThrow(() -> {
             var result = invoker.executeCommand(putCommand);
@@ -67,14 +67,14 @@ class CommandInvokerTest {
     void testExpire() {
         StorageReceiver receiver = new FileSystemStorageReceiver();
 
-        Command putCommand = new PutCommand(receiver, "expire_test", "questa file scade tra 2 ore".getBytes(StandardCharsets.UTF_8), Duration.of(2, ChronoUnit.HOURS));
+        Command putCommand = new PutCommand(receiver, "ns_prova","expire_test", "questa file scade tra 2 ore".getBytes(StandardCharsets.UTF_8), Duration.of(2, ChronoUnit.HOURS));
         CommandInvoker invoker = new CommandInvoker();
         assertDoesNotThrow(() -> {
             var result = invoker.executeCommand(putCommand);
         });
 
         assertDoesNotThrow(() -> {
-            Command get = new GetCommand(receiver, "expire_test");
+            Command get = new GetCommand(receiver, "ns_prova","expire_test");
             var result = invoker.executeCommand(get);
         });
     }

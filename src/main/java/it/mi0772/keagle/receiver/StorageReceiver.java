@@ -8,6 +8,6 @@ import java.time.Duration;
 import java.util.Optional;
 
 public interface StorageReceiver {
-    KRecord put(String key, byte[] value, Duration duration) throws KRecordAlreadyExists, IOException;
-    Optional<KRecord> get(String key) throws IOException;
+    KRecord put(String namespace, String key, byte[] value, Duration duration) throws KRecordAlreadyExists, IOException;
+    Optional<KRecord> get(String namespace, String key) throws IOException;
 }

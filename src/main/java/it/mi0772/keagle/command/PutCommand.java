@@ -16,23 +16,25 @@ public class PutCommand implements Command {
     private final StorageReceiver receiver;
     private final String key;
     private final byte[] value;
+    private final String namespace;
     private Duration duration;
 
 
-    public PutCommand(StorageReceiver receiver, String key, byte[] value) {
-        this(receiver, key, value, null);
+    public PutCommand(StorageReceiver receiver, String namespace, String key, byte[] value) {
+        this(receiver,namespace,  key, value, null);
     }
 
-    public PutCommand(StorageReceiver receiver, String key, byte[] value, Duration duration) {
+    public PutCommand(StorageReceiver receiver, String namespace, String key, byte[] value, Duration duration) {
         this.receiver = receiver;
         this.key = key;
         this.value = value;
         this.duration = duration;
+        this.namespace = namespace;
     }
 
     @Override
     public Optional<KRecord> execute() throws KRecordAlreadyExists, IOException {
         logger.info("put command received, values {}, {}", this.key, this.value);
-        return Optional.ofNullable(receiver.put(this.key, this.value, this.duration));
+        return Optional.ofNullable(receiver.put(this.namespace, this.key, this.value, this.duration));
     }
 }

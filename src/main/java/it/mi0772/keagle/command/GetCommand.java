@@ -13,15 +13,17 @@ public class GetCommand implements Command {
 
     private final StorageReceiver receiver;
     private final String key;
+    private final String namespace;
 
-    public GetCommand(StorageReceiver receiver, String key) {
+    public GetCommand(StorageReceiver receiver, String namespace, String key) {
         this.receiver = receiver;
         this.key = key;
+        this.namespace = namespace;
     }
 
     @Override
     public Optional<KRecord> execute() throws IOException {
         logger.info("get command received, looking for key : {}", this.key);
-        return receiver.get(this.key);
+        return receiver.get(this.namespace, this.key);
     }
 }

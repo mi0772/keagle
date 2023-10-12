@@ -14,27 +14,26 @@ import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.List;
 
 public class Resource {
 
     private final String hash;
-    private final List<String> path;
+    private final String entryPath;
     private Path resourcePath;
     private final String databasePath;
+    private final String namespace;
 
-    public Resource(String hash) {
+    public Resource(String namespace, String hash) throws IOException {
         Dotenv dotenv = Dotenv.load();
-
+        var ns = new Namespace();
+        this.namespace = ns.getOrCreate(namespace);
         this.hash = hash;
-        this.path = Arrays.stream(splitHashToPaths(this.hash)).toList();
+        this.entryPath = this.hash;
         this.databasePath = dotenv.get("STORAGE_PATH");
-        this.resourcePath = Paths.get(this.databasePath);
-        this.path.forEach(p -> this.resourcePath = this.resourcePath.resolve(p));
+        this.resourcePath = Paths.get(this.databasePath, "records", this.namespace, this.entryPath);
+
     }
 
     public boolean exist() {
@@ -82,23 +81,8 @@ public class Resource {
         return false;
     }
 
-    private String[] splitHashToPaths(String hash) {
-        if (hash.length() != 32) {
-            throw new IllegalArgumentException("L'hash deve essere di 32 caratteri (256 bit).");
-        }
-
-        String[] pathComponents = new String[4];
-        for (int i = 0; i < 4; i++) {
-            int start = i * 8;
-            int end = start + 8;
-            pathComponents[i] = hash.substring(start, end);
-        }
-
-        return pathComponents;
-    }
-
     private void removeExpiredEntry() throws IOException {
-        Path directoryPath = Path.of(this.databasePath,this.path.get(0));
+        Path directoryPath = Path.of(this.databasePath,this.entryPath);
         Files.walkFileTree(directoryPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {

@@ -12,8 +12,8 @@ import java.util.Optional;
 
 public class FileSystemStorageReceiver implements StorageReceiver {
     @Override
-    public KRecord put(String key, byte[] value, Duration duration) throws KRecordAlreadyExists, IOException {
-        var resource = new Resource(MD5Hasher.toHex(key));
+    public KRecord put(String namespace, String key, byte[] value, Duration duration) throws KRecordAlreadyExists, IOException {
+        var resource = new Resource(namespace, MD5Hasher.toHex(key));
         if (resource.exist())
             throw new KRecordAlreadyExists("record with key "+key+" already exist");
 
@@ -22,8 +22,8 @@ public class FileSystemStorageReceiver implements StorageReceiver {
     }
 
     @Override
-    public Optional<KRecord> get(String key) throws IOException {
-        var resource = new Resource(MD5Hasher.toHex(key));
+    public Optional<KRecord> get(String namespace, String key) throws IOException {
+        var resource = new Resource(namespace, MD5Hasher.toHex(key));
         if (!resource.exist() || resource.isExpired()) {
             return Optional.empty();
         }
