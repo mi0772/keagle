@@ -22,6 +22,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.EnumSet;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -59,7 +61,22 @@ class CommandInvokerTest {
         assertThrows(KRecordAlreadyExists.class, () -> {
             var result = invoker.executeCommand(putCommand);
         });
+    }
 
+    @Test
+    void testExpire() {
+        StorageReceiver receiver = new FileSystemStorageReceiver();
+
+        Command putCommand = new PutCommand(receiver, "expire_test", "questa file scade tra 2 ore".getBytes(StandardCharsets.UTF_8), Duration.of(2, ChronoUnit.HOURS));
+        CommandInvoker invoker = new CommandInvoker();
+        assertDoesNotThrow(() -> {
+            var result = invoker.executeCommand(putCommand);
+        });
+
+        assertDoesNotThrow(() -> {
+            Command get = new GetCommand(receiver, "expire_test");
+            var result = invoker.executeCommand(get);
+        });
     }
 
     @BeforeEach
