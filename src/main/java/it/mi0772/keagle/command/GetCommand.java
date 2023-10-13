@@ -1,7 +1,6 @@
 package it.mi0772.keagle.command;
 
-import it.mi0772.keagle.exceptions.NamespaceNotFoundException;
-import it.mi0772.keagle.filesystem.Namespace;
+import it.mi0772.keagle.exceptions.EntryExpiredException;
 import it.mi0772.keagle.receiver.StorageReceiver;
 import it.mi0772.keagle.record.KRecord;
 import org.slf4j.Logger;
@@ -14,18 +13,16 @@ public class GetCommand implements Command {
 
     private final StorageReceiver receiver;
     private final String key;
-    private final String namespace;
 
-    public GetCommand(StorageReceiver receiver, String namespace, String key) {
+
+    public GetCommand(StorageReceiver receiver, String key) {
         this.receiver = receiver;
         this.key = key;
-        this.namespace = namespace;
     }
 
     @Override
-    public Optional<KRecord> execute() throws NamespaceNotFoundException {
-        new Namespace().get(this.namespace);
-        return receiver.get(this.namespace, this.key);
+    public Optional<KRecord> execute() throws EntryExpiredException {
+        return receiver.get(this.key);
 
     }
 }

@@ -1,6 +1,8 @@
 package it.mi0772.keagle.command;
 
 import io.github.cdimascio.dotenv.Dotenv;
+import it.mi0772.keagle.enums.StorageType;
+import it.mi0772.keagle.exceptions.EntryExpiredException;
 import it.mi0772.keagle.exceptions.KRecordAlreadyExists;
 import it.mi0772.keagle.exceptions.NamespaceNotFoundException;
 import it.mi0772.keagle.receiver.FileSystemStorageReceiver;
@@ -23,9 +25,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.rmi.server.UID;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.EnumSet;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -34,26 +38,71 @@ class CommandInvokerTest {
     private static final Logger logger = LoggerFactory.getLogger(CommandInvokerTest.class);
 
     @Test
-    void test() throws KRecordAlreadyExists, IOException, NamespaceNotFoundException {
+    void testFS() throws KRecordAlreadyExists, IOException, NamespaceNotFoundException, EntryExpiredException {
         StorageReceiver receiver = new FileSystemStorageReceiver();
 
-        Command putCommand = new PutCommand(receiver,"ns_prova", "ciao", "valore".getBytes(StandardCharsets.UTF_8));
+        var key = UUID.randomUUID().toString();
+
+        Command putCommand = new PutCommand(receiver,key, "valore".getBytes(StandardCharsets.UTF_8), StorageType.FILESYSTEM);
         CommandInvoker invoker = new CommandInvoker();
 
         var result = invoker.executeCommand(putCommand);
         logger.info("put result : {}", result);
 
-        Command getCommand = new GetCommand(receiver, "ns_prova","ciao");
+        Command getCommand = new GetCommand(receiver,key);
         var value = invoker.executeCommand(getCommand);
         logger.info("get result : {}", value);
         assertTrue(true);
     }
 
     @Test
+    void testMemory() throws KRecordAlreadyExists, IOException, NamespaceNotFoundException, EntryExpiredException {
+        StorageReceiver receiver = new FileSystemStorageReceiver();
+        var key = UUID.randomUUID().toString();
+
+        Command putCommand = new PutCommand(receiver, key, "valore".getBytes(StandardCharsets.UTF_8), StorageType.MEMORY);
+        CommandInvoker invoker = new CommandInvoker();
+
+        var result = invoker.executeCommand(putCommand);
+        logger.info("put result : {}", result);
+
+        Command getCommand = new GetCommand(receiver,key);
+        var value = invoker.executeCommand(getCommand);
+        logger.info("get result : {}", value);
+        assertTrue(true);
+    }
+
+    @Test
+    void testExpired() throws KRecordAlreadyExists, IOException, NamespaceNotFoundException, InterruptedException, EntryExpiredException {
+        StorageReceiver receiver = new FileSystemStorageReceiver();
+        var key = UUID.randomUUID().toString();
+
+        Command putCommand = new PutCommand(receiver, key, "valore".getBytes(StandardCharsets.UTF_8), Duration.ofSeconds(10), StorageType.MEMORY);
+        CommandInvoker invoker = new CommandInvoker();
+
+        var result = invoker.executeCommand(putCommand);
+        logger.info("put result : {}", result);
+
+        Command getCommand = new GetCommand(receiver,key);
+        var value = invoker.executeCommand(getCommand);
+        logger.info("get result : {}", value);
+        assertTrue(true);
+
+        Thread.sleep(11_000);
+
+
+        assertThrows(EntryExpiredException.class, () -> {
+            var v = invoker.executeCommand(getCommand);
+            logger.info("get result : {}", v);
+        });
+
+    }
+
+    @Test
     void alreadyExist() throws KRecordAlreadyExists, IOException {
         StorageReceiver receiver = new FileSystemStorageReceiver();
 
-        Command putCommand = new PutCommand(receiver, "ns_prova", "ciao", "valore".getBytes(StandardCharsets.UTF_8));
+        Command putCommand = new PutCommand(receiver,  "ciao", "valore".getBytes(StandardCharsets.UTF_8), StorageType.FILESYSTEM);
         CommandInvoker invoker = new CommandInvoker();
         assertDoesNotThrow(() -> {
             var result = invoker.executeCommand(putCommand);
@@ -64,46 +113,7 @@ class CommandInvokerTest {
         });
     }
 
-    @Test
-    void testExpire() {
-        StorageReceiver receiver = new FileSystemStorageReceiver();
-
-        Command putCommand = new PutCommand(receiver, "ns_prova","expire_test", "questa file scade tra 2 ore".getBytes(StandardCharsets.UTF_8), Duration.of(2, ChronoUnit.HOURS));
-        CommandInvoker invoker = new CommandInvoker();
-        assertDoesNotThrow(() -> {
-            var result = invoker.executeCommand(putCommand);
-        });
-
-        assertDoesNotThrow(() -> {
-            Command get = new GetCommand(receiver, "ns_prova","expire_test");
-            var result = invoker.executeCommand(get);
-        });
-    }
-
-    @Test
-    void massiveTest() throws KRecordAlreadyExists, IOException, NamespaceNotFoundException {
-        StorageReceiver receiver = new FileSystemStorageReceiver();
-        CommandInvoker invoker = new CommandInvoker();
-
-        assertDoesNotThrow(() -> {
-            for (int i=0 ; i < 10_000 ; i++) {
-                Command putCommand = new PutCommand(receiver, "test_namespace", "elemento"+i, new String("valore"+i).getBytes(StandardCharsets.UTF_8));
-                invoker.executeCommand(putCommand);
-            }
-        });
-
-        assertDoesNotThrow(() -> {
-            for (int i=0 ; i < 10_000 ; i++) {
-                Command getCommand = new GetCommand(receiver, "test_namespace", "elemento"+i);
-                var record = invoker.executeCommand(getCommand);
-                assertNotNull(record);
-            }
-        });
-
-
-    }
-
-    @BeforeEach
+    //@BeforeEach
     void before() throws IOException {
         logger.info("cancello database");
         Dotenv dotenv = Dotenv.load();

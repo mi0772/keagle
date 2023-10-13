@@ -2,7 +2,6 @@ package it.mi0772.keagle.server;
 
 import io.undertow.Undertow;
 import it.mi0772.keagle.config.KConfig;
-import it.mi0772.keagle.filesystem.ExpireRecordCleaner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +27,7 @@ public class KServer {
         ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
         executorService.scheduleAtFixedRate(() -> {
             logger.info("start clean daemon");
-            new ExpireRecordCleaner().clean();
+
         }, 5, 60 , TimeUnit.SECONDS);
     }
 

@@ -1,7 +1,7 @@
 package it.mi0772.keagle.command;
 
+import it.mi0772.keagle.enums.StorageType;
 import it.mi0772.keagle.exceptions.KRecordAlreadyExists;
-import it.mi0772.keagle.filesystem.Namespace;
 import it.mi0772.keagle.receiver.StorageReceiver;
 import it.mi0772.keagle.record.KRecord;
 import org.slf4j.Logger;
@@ -17,25 +17,23 @@ public class PutCommand implements Command {
     private final StorageReceiver receiver;
     private final String key;
     private final byte[] value;
-    private final String namespace;
     private Duration duration;
+    private StorageType storageType;
 
-
-    public PutCommand(StorageReceiver receiver, String namespace, String key, byte[] value) {
-        this(receiver,namespace,  key, value, null);
+    public PutCommand(StorageReceiver receiver, String key, byte[] value, StorageType storageType) {
+        this(receiver,  key, value, null, storageType);
     }
 
-    public PutCommand(StorageReceiver receiver, String namespace, String key, byte[] value, Duration duration) {
+    public PutCommand(StorageReceiver receiver, String key, byte[] value, Duration duration, StorageType storageType) {
         this.receiver = receiver;
         this.key = key;
         this.value = value;
         this.duration = duration;
-        this.namespace = namespace;
+        this.storageType = storageType;
     }
 
     @Override
     public Optional<KRecord> execute() throws KRecordAlreadyExists, IOException {
-        new Namespace().getOrCreate(namespace);
-        return Optional.ofNullable(receiver.put(this.namespace, this.key, this.value, this.duration));
+        return Optional.ofNullable(receiver.put(this.key, this.value, this.duration, this.storageType));
     }
 }
