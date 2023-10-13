@@ -6,6 +6,7 @@ import it.mi0772.keagle.exceptions.EntryExpiredException;
 import it.mi0772.keagle.exceptions.KRecordAlreadyExists;
 import it.mi0772.keagle.filesystem.Entry;
 import it.mi0772.keagle.filesystem.FSTree;
+import it.mi0772.keagle.hash.Hasher;
 import it.mi0772.keagle.hash.HasherFactory;
 import it.mi0772.keagle.record.KRecord;
 
@@ -30,7 +31,7 @@ public class FileSystemStorageReceiver implements StorageReceiver {
     public KRecord put(String key, byte[] value, Duration duration, StorageType storageType) throws KRecordAlreadyExists, IOException {
 
         var entry = new Entry(storageType, HasherFactory.getDefaultHasher().toHex(key), duration);
-        if (fsTree.find(key) != null)
+        if (fsTree.find(HasherFactory.getDefaultHasher().toHex(key)) != null)
             throw new KRecordAlreadyExists("record with key "+key+" already exist");
 
         switch (storageType) {
@@ -49,24 +50,26 @@ public class FileSystemStorageReceiver implements StorageReceiver {
     @Override
     public Optional<KRecord> get(String key) throws EntryExpiredException {
 
-        var sEntry = fsTree.find(key);
+        var sEntry = fsTree.find(HasherFactory.getDefaultHasher().toHex(key));
 
         if (sEntry == null)
             return Optional.empty();
 
-        if (sEntry.getValue().getExpire() != null && LocalDateTime.now().isAfter(sEntry.getValue().getExpire()))
+        if (sEntry.getValue().getExpire() != null && LocalDateTime.now().isAfter(sEntry.getValue().getExpire())) {
+            fsTree.deleteNode(sEntry.getValue().getKey());
             throw new EntryExpiredException("Expired");
+        }
 
-        switch (sEntry.getValue().getStorageType()) {
-            case FILESYSTEM -> {
-                Path entryPath = Path.of(KConfig.getInstance().getProperty("STORAGE_PATH"), key);
-                try {
-                    return Optional.of(new KRecord(key, Files.readAllBytes(entryPath), null, null));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+        if (sEntry.getValue().getStorageType() == StorageType.FILESYSTEM) {
+            Path entryPath = Path.of(KConfig.getInstance().getProperty("STORAGE_PATH"), key);
+            try {
+                return Optional.of(new KRecord(key, Files.readAllBytes(entryPath), null, null));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
-            case MEMORY -> Optional.of(new KRecord(key, sEntry.getValue().getContent(), null, null));
+        }
+        else {
+            return  Optional.of(new KRecord(key, sEntry.getValue().getContent(), null, null));
         }
     }
 }

@@ -54,10 +54,46 @@ public class FSTree {
         return findRecursive(this.root, key);
     }
 
+
+
     public List<String> findPath(Entry target) {
         List<String> percorso = new ArrayList<>();
         findPathRecursive(this.root, target, percorso);
         return percorso;
+    }
+
+    public FSNode deleteNode(String targetKey) {
+        return deleteNode(this.root, targetKey);
+    }
+    private FSNode deleteNode(FSNode root, String targetKey) {
+        if (root == null) {
+            return root;
+        }
+        if (targetKey.compareTo(root.value.getKey()) < 0) {
+            root.left = deleteNode(root.left, targetKey);
+        }
+        else if (targetKey.compareTo(root.value.getKey()) > 0) {
+            root.right = deleteNode(root.right, targetKey);
+        }
+        else {
+            if (root.left == null) {
+                return root.right;
+            } else if (root.right == null) {
+                return root.left;
+            }
+            root.value = minValue(root.right);
+            root.right = deleteNode(root.right, root.value.getKey());
+        }
+        return root;
+    }
+
+    private Entry minValue(FSNode root) {
+        Entry minValue = root.value;
+        while (root.left != null) {
+            minValue = root.left.value;
+            root = root.left;
+        }
+        return minValue;
     }
 
     private FSNode findRecursive(FSNode nodo, String key) {
