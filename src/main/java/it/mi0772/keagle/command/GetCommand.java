@@ -7,7 +7,6 @@ import it.mi0772.keagle.record.KRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Optional;
 
 public class GetCommand implements Command {

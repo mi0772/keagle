@@ -1,8 +1,6 @@
 package it.mi0772.keagle.server;
 
 import io.undertow.Undertow;
-import io.undertow.server.HttpHandler;
-import io.undertow.server.HttpServerExchange;
 import it.mi0772.keagle.config.KConfig;
 import it.mi0772.keagle.filesystem.ExpireRecordCleaner;
 import org.slf4j.Logger;

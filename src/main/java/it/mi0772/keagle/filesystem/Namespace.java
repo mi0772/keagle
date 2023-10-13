@@ -3,12 +3,11 @@ package it.mi0772.keagle.filesystem;
 import io.github.cdimascio.dotenv.Dotenv;
 import it.mi0772.keagle.exceptions.NamespaceAlreadyExist;
 import it.mi0772.keagle.exceptions.NamespaceNotFoundException;
-import it.mi0772.keagle.hash.MD5Hasher;
+import it.mi0772.keagle.hash.HasherFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.FileAttribute;
 
 public class Namespace {
     private final String databasePath;
@@ -39,7 +38,7 @@ public class Namespace {
     }
 
     public String createIfAbsent(String name) throws NamespaceAlreadyExist, IOException {
-        var nameHash = MD5Hasher.toHex(name);
+        var nameHash = HasherFactory.getDefaultHasher().toHex(name);
         var p = this.namespacePath.resolve(nameHash);
         if (p.toFile().exists()) {
             throw new NamespaceAlreadyExist("namespace with name : "+name+" already exist");
@@ -50,7 +49,7 @@ public class Namespace {
     }
 
     public String create(String name) throws IOException {
-        var nameHash = MD5Hasher.toHex(name);
+        var nameHash = HasherFactory.getDefaultHasher().toHex(name);
         var p = this.namespacePath.resolve(nameHash);
         Files.createFile(p);
         Files.writeString(p,name);
@@ -58,7 +57,7 @@ public class Namespace {
     }
 
     public String get(String name) throws NamespaceNotFoundException {
-        var nameHash = MD5Hasher.toHex(name);
+        var nameHash = HasherFactory.getDefaultHasher().toHex(name);
         var p = this.namespacePath.resolve(nameHash);
         if (!p.toFile().exists())
             throw new NamespaceNotFoundException("namespace with name : "+name+" does not exists");

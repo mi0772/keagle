@@ -1,17 +1,11 @@
 package it.mi0772.keagle.filesystem;
 
 import it.mi0772.keagle.config.KConfig;
-import it.mi0772.keagle.hash.MD5Hasher;
+import it.mi0772.keagle.hash.HasherFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileVisitOption;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -27,7 +21,7 @@ public class Resource {
     private final String namespace;
 
     public Resource(String namespace, String hash) {
-        this.namespace = MD5Hasher.toHex(namespace);
+        this.namespace = HasherFactory.getDefaultHasher().toHex(namespace);
         this.hash = hash;
         this.entryPath = this.hash;
         this.databasePath = KConfig.getInstance().getProperty("STORAGE_PATH");

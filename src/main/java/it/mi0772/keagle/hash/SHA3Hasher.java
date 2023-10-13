@@ -1,12 +1,13 @@
 package it.mi0772.keagle.hash;
 
+import javax.xml.bind.DatatypeConverter;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class MD5Hasher implements Hasher {
+public class SHA3Hasher implements Hasher {
 
-    private MD5Hasher() {
+    private SHA3Hasher() {
     }
 
     private static volatile Hasher instance;
@@ -14,7 +15,7 @@ public class MD5Hasher implements Hasher {
         if (instance == null) {
             synchronized (MD5Hasher .class) {
                 if (instance == null) {
-                    instance = new MD5Hasher();
+                    instance = new SHA3Hasher();
                 }
             }
         }
@@ -22,11 +23,7 @@ public class MD5Hasher implements Hasher {
     }
 
     public String toHex(byte[] input) {
-        StringBuilder result = new StringBuilder();
-        for (byte b : calculate(input)) {
-            result.append(String.format("%02x", b));
-        }
-        return result.toString();
+        return DatatypeConverter.printHexBinary(calculate(input));
     }
     public String toHex(String input) {
         return toHex(input.getBytes(StandardCharsets.UTF_8));
@@ -34,8 +31,8 @@ public class MD5Hasher implements Hasher {
 
     public byte[] calculate(byte[] input) {
         try {
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            return md.digest(input);
+            MessageDigest sha3 = MessageDigest.getInstance("SHA3-224");
+            return sha3.digest(input);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }

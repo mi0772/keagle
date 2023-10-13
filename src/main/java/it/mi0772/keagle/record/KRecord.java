@@ -1,6 +1,6 @@
 package it.mi0772.keagle.record;
 
-import it.mi0772.keagle.hash.MD5Hasher;
+import it.mi0772.keagle.hash.HasherFactory;
 
 import java.time.Instant;
 
@@ -17,8 +17,8 @@ public class KRecord  {
         this.value = value;
         this.creationTime = creationTime;
         this.expiresAt = expiresAt;
-        this.valueHash = MD5Hasher.toHex(this.value);
-        this.keyHash   = MD5Hasher.toHex(this.key);
+        this.valueHash = HasherFactory.getDefaultHasher().toHex(this.value);
+        this.keyHash   = HasherFactory.getDefaultHasher().toHex(this.key);
     }
 
     public String getKey() {
