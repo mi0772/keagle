@@ -21,7 +21,15 @@ public class KConfig {
         this.dotenv = Dotenv.load();
     }
 
-    public String getProperty(String name) {
-        return this.dotenv.get(name);
+    public String getHttpServerPort() {
+        return this.dotenv.get("SERVER_PORT");
+    }
+
+    public String getHttpServerAddress() {
+        return this.dotenv.get("SERVER_ADDRESS");
+    }
+
+    public String getStoragePath() {
+        return this.dotenv.get("STORAGE_PATH");
     }
 }

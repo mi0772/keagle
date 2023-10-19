@@ -34,7 +34,7 @@ public class HasherFactory {
 
     public static Hasher getDefaultHasher() {
         var config = KConfig.getInstance();
-        return switch (Type.fromName(config.getProperty("HASH"))) {
+        return switch (Type.fromName("SHA3")) {
             case MD5 -> MD5Hasher.getInstance();
             case SHA3_244 -> SHA3Hasher.getInstance();
         };
