@@ -1,10 +1,10 @@
 package it.mi0772.keagle.filesystem;
 
+import it.mi0772.keagle.exceptions.ItemAlreadyExistException;
 import it.mi0772.keagle.storage.StorageSelector;
 import it.mi0772.keagle.types.StorageType;
 import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 
@@ -14,7 +14,7 @@ import static org.wildfly.common.Assert.assertTrue;
 class InMemoryTest {
 
     @Test
-    void create() {
+    void create() throws ItemAlreadyExistException {
 
         var storage = StorageSelector.getStorage(StorageType.VOLATILE);
 
@@ -36,7 +36,13 @@ class InMemoryTest {
         Stream.iterate(0,
                         (Integer n) -> n + 1)
                 .limit(10_000)
-                .forEach(x -> storage.insert("key_"+x, ("value_"+x).getBytes(StandardCharsets.UTF_8)));
+                .forEach(x -> {
+                    try {
+                        storage.insert("key_"+x, ("value_"+x).getBytes(StandardCharsets.UTF_8));
+                    } catch (ItemAlreadyExistException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
 
 
         assertNotNull(storage);
